@@ -16,6 +16,8 @@
 	"mongodb":"*",
 	"mongoose":"*",
 	"iconv-lite":"*",
-	"ejsexcel": "*"
+	"ejsexcel": "*",
+	"moment": "*",
+	"node-schedule": "*"
   }
 }

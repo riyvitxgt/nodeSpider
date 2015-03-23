@@ -3,14 +3,15 @@ var iconv = require('iconv-lite');
 var mongoose = require("mongoose");
 var ejsExcel = require('ejsexcel');
 var fs = require('fs');
-
-
+var moment = require('moment');
+var schedule = require('node-schedule');
 
 var db = mongoose.createConnection('mongodb://127.0.0.1:27017/test');
 db.on('error',function(error){
 	console.log(error);
 });
 
+//构造一个表
 var mongooseSchema = new mongoose.Schema({
 	stockName : {type:String},
 	open 	  : {type:Number},
@@ -21,22 +22,12 @@ var mongooseSchema = new mongoose.Schema({
 	buyPric   : {type:Number},
 	sellPric  : {type:Number},
 	dealCount : {type:Number},
-	dealPric  : {type:Number}
+	dealPric  : {type:Number},
+	stockCode : {type:Number},
+	freshDate : {type:Date}
 });
 
-var mongooseModel = db.model('mongoose',mongooseSchema);
-
-var express = require("express");
-var app = express();
-
-app.get('/',function(req, res){
-	console.log("come in  >>>>>>>>>>>>");
-	var code = getStockCode('D:/bb.xlsx');
-	getStockCode('D:/bb.xlsx');
-	
-});
-
-
+var mongooseModel = db.model('stocks',mongooseSchema);
 
 function getStockMsg(code, callback){
 	console.log(code.toString());
@@ -51,8 +42,13 @@ function getStockMsg(code, callback){
 				var result = iconv.decode(buf, 'gbk');
 				var stock,stocks = [];
 				stock = result.trim().split(';');
-				for(var i = 0; i < stock.length -1; i++){	
-					stocks.push(stock[i].substring(stock[i].indexOf('"') + 1,stock[i].length -1));		
+				for(var i = 0; i < stock.length -1; i++){
+					var stc = stock[i];
+					stocks.push(
+						stock[i].substring(stc.indexOf('"') + 1,stc.length -1) 
+						+ "," +
+						stock[i].substring(stc.indexOf("hq_str_") + 9,stc.indexOf("="))
+					);
 				}
 				insertIntoDB(stocks);
 			}
@@ -63,8 +59,8 @@ function getStockMsg(code, callback){
 function insertIntoDB(data){
 	for(var i = 0; i < data.length; i++){
 		var msg = data[i].split(",");
+		console.log(msg[30]);
 		var sql = '';
-		//console.log(msg.length);
 		for(var j = 0; j < 10; j++){
 			var key = '';
 			switch(j){
@@ -98,6 +94,9 @@ function insertIntoDB(data){
 				case 9:
 					key = "dealPric:";
 					break;
+				case 10:
+					key = "stockCode:";
+					break;
 			}
 			var value = '';
 			if(j == 0){
@@ -107,23 +106,12 @@ function insertIntoDB(data){
 			}
 			if(j == 0){
 				sql += ("{" + value);
-			}else if(j == 9){
-				sql += ("," + value + "}");
 			}else{
 				sql += ("," + value);
 			}
 		}
-		//console.log(eval("(" +sql + ")"));
-		/*var mongooseEntity = new mongooseModel(eval("(" +sql + ")"));
-		mongooseEntity.save(function(error){
-			console.log('aaa');
-			if(error){
-				console.log(error);
-			}else{
-				console.log("saved success");
-			}
-			
-		});*/
+		sql += ",stockCode:" + msg[33] + ", freshDate: "+ moment(msg[30]) + "}";
+		//console.log(sql);
 		mongooseModel.create(eval("(" + sql + ")"), function(err){
 			if(err){
 				console.log(err);
@@ -135,23 +123,16 @@ function insertIntoDB(data){
 	
 }
 
-/*
-getStockMsg('sh601006,sh600029,sh601218',function(msg){
-	console.log(msg.toString());
-});
-*/
 
 //从指定的excel文件中导出股票代码
 function getStockCode(filePath){
-	console.log(filePath);
-	
 	var exlBuf = fs.readFileSync(filePath);
 	ejsExcel.getExcelArrCb(exlBuf, function(exlJson){
 		var stockArr = [];
+		
 		for(var i = 0; i < exlJson[0].length; i++){
 			var stockNow = exlJson[0][i][2];
-			//console.log(stockNow);
-			if(stockNow.indexOf(6) == 0){
+			if(stockNow.indexOf(6) == 0 && stockNow.length == 6){
 				stockArr.push('sh' + stockNow);
 			}
 		}
@@ -167,29 +148,12 @@ function getStockCode(filePath){
 			});
 			start = end;
 		}
-		// for(var i = 0; i < stockArr.length; i++){
-			// if(i == 0){
-				// code = stockArr[0];
-			// }else{
-				// code += (',' + stockArr[i])
-			// }
-			// if(i % 10 == 0){
-				// console.log(code);
-				// getStockMsg(code,function(msg){
-					// console.log(msg);
-					console.log(msg.toString());
-				// });
-				
-			// }
-		// }
-		
 	});
 }
 
+var rule = new schedule.RecurrenceRule();
+rule.dayOfWeek = [0, new schedule.Range(1,5)];
+rule.hour = 14;
+rule.minute = 0;
 
-
-
-
-app.listen(3000, function(){
-	console.log('server start on port 3000');
-});
+schedule.scheduleJob(rule,getStockCode('D:/bb.xlsx'));
