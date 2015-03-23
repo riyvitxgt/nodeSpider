@@ -5,6 +5,17 @@ var ejsExcel = require('ejsexcel');
 var fs = require('fs');
 var moment = require('moment');
 var schedule = require('node-schedule');
+var log4js = require('log4js');
+
+log4js.configure({
+	appenders:[
+		{type:'console'},
+		{type:'file', filename:'logs/error.log',category:'dbError'}
+	]
+});
+var logger = log4js.getLogger('dbError');
+logger.setLevel('ERROR');
+
 
 var db = mongoose.createConnection('mongodb://127.0.0.1:27017/test');
 db.on('error',function(error){
@@ -59,7 +70,6 @@ function getStockMsg(code, callback){
 function insertIntoDB(data){
 	for(var i = 0; i < data.length; i++){
 		var msg = data[i].split(",");
-		console.log(msg[30]);
 		var sql = '';
 		for(var j = 0; j < 10; j++){
 			var key = '';
@@ -94,9 +104,6 @@ function insertIntoDB(data){
 				case 9:
 					key = "dealPric:";
 					break;
-				case 10:
-					key = "stockCode:";
-					break;
 			}
 			var value = '';
 			if(j == 0){
@@ -111,10 +118,10 @@ function insertIntoDB(data){
 			}
 		}
 		sql += ",stockCode:" + msg[33] + ", freshDate: "+ moment(msg[30]) + "}";
-		//console.log(sql);
 		mongooseModel.create(eval("(" + sql + ")"), function(err){
 			if(err){
-				console.log(err);
+				logger.error(err);
+				logger.error(sql);
 			}else{
 				console.log("save successed");
 			}
@@ -144,7 +151,6 @@ function getStockCode(filePath){
 			}
 			getStockMsg(stockArr.slice(start,end),function(msg){
 					console.log(msg);
-					//console.log(msg.toString());
 			});
 			start = end;
 		}
@@ -154,6 +160,9 @@ function getStockCode(filePath){
 var rule = new schedule.RecurrenceRule();
 rule.dayOfWeek = [0, new schedule.Range(1,5)];
 rule.hour = 14;
-rule.minute = 0;
+rule.minute = 7;
 
-schedule.scheduleJob(rule,getStockCode('D:/bb.xlsx'));
+schedule.scheduleJob(rule,function(){
+	getStockCode('D:/bb.xlsx');
+});
+

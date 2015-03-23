@@ -18,6 +18,7 @@
 	"iconv-lite":"*",
 	"ejsexcel": "*",
 	"moment": "*",
-	"node-schedule": "*"
+	"node-schedule": "*",
+    "log4js": "*"
   }
 }
