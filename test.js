@@ -159,8 +159,8 @@ function getStockCode(filePath){
 
 var rule = new schedule.RecurrenceRule();
 rule.dayOfWeek = [0, new schedule.Range(1,5)];
-rule.hour = 17;
-rule.minute = 3;
+rule.hour = 19;
+rule.minute = 11;
 
 schedule.scheduleJob(rule,function(){
 	getStockCode('D:/bb.xlsx');

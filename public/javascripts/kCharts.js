@@ -33,7 +33,6 @@ $(function () {
                 data[i][5] // the volume
             ]);
         }
-        alert(ohlc[1]);
 
         // create the chart
         $('#kChart').highcharts('StockChart', {

@@ -1,17 +1,14 @@
 extends layout
-
-
 block content
   link(href="/stylesheets/bootstrap.min.css",rel="styleSheet")
   link(href="/stylesheets/kStyle.css",rel="styleSheet")
   script(src="javascripts/jquery-1.11.2.js")
   script(src="javascripts/highstock.js")
   script(src="javascripts/kCharts.js")
-  h1= title
-  p Welcome to #{title}
+
   #container
     #kLine
-      .col-md-9 aaasdffffff
+      .col-md-9
         #kChart
       .col-md-3
         table.table.table-hover.table-bordered
