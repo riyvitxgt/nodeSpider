@@ -19,6 +19,7 @@
 	"ejsexcel": "*",
 	"moment": "*",
 	"node-schedule": "*",
-    "log4js": "*"
+    "log4js": "*",
+    "cheerio": "*"
   }
 }
