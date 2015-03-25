@@ -6,6 +6,9 @@ var fs = require('fs');
 var moment = require('moment');
 var schedule = require('node-schedule');
 var log4js = require('log4js');
+var StockSchema = require('./schemas/StockSchema.js');
+
+var CompanySchema = require('./schemas/CompanySchema.js');
 
 log4js.configure({
 	appenders:[
@@ -22,23 +25,21 @@ db.on('error',function(error){
 	console.log(error);
 });
 
-//构造一个表
-var mongooseSchema = new mongoose.Schema({
-	stockName : {type:String},
-	open 	  : {type:Number},
-	close 	  : {type:Number},
-	nowPric   : {type:Number},
-	high	  : {type:Number},
-	low 	  : {type:Number},
-	buyPric   : {type:Number},
-	sellPric  : {type:Number},
-	dealCount : {type:Number},
-	dealPric  : {type:Number},
-	stockCode : {type:Number},
-	freshDate : {type:Date}
+db.once('open', function(callback){
+
 });
 
-var mongooseModel = db.model('stocks',mongooseSchema);
+var stockCode = mongoose.model('companies', CompanySchema);
+console.log(stockCode);
+stockCode.find({code:'600570'},function(err,codes){
+	if(err) return console.error(err);
+	console.log("进行");
+	console.log(codes);
+});
+
+
+/*
+var stockModel = db.model('stocks',StockSchema);
 
 function getStockMsg(code, callback){
 	console.log(code.toString());
@@ -118,7 +119,7 @@ function insertIntoDB(data){
 			}
 		}
 		sql += ",stockCode:" + msg[33] + ", freshDate: "+ moment(msg[30]) + "}";
-		mongooseModel.create(eval("(" + sql + ")"), function(err){
+		stockModel.create(eval("(" + sql + ")"), function(err){
 			if(err){
 				logger.error(err);
 				logger.error(sql);
@@ -167,3 +168,4 @@ schedule.scheduleJob(rule,function(){
 	getStockCode('D:/bb.xlsx');
 });
 
+*/
