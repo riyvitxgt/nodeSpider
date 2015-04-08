@@ -9,7 +9,6 @@ var cheerio = require('cheerio');
 getCompanyArray();
 
 function getCompanyArray(){
-    var comAbbrs = [];
     http.get("http://finance.yahoo.com/q/cp?s=%5EDJI+Components",function(res){
        var htmlArr = [];
         res.on('data' ,function(data){
@@ -19,7 +18,6 @@ function getCompanyArray(){
             var buf = Buffer.concat(htmlArr);
             var $=cheerio.load(iconv.decode(buf, 'gbk'));
             var htmlContent = $(".yfnc_tabledata1");
-            var comAbbrs = [];
             for(var i = 0; i < htmlContent.length; i++){
                 if(i % 5 == 0){
                    downloadCSV($(htmlContent[i]).text());
@@ -31,7 +29,6 @@ function getCompanyArray(){
 
 
 function downloadCSV(comAbbrs){
-
     http.get('http://finance.yahoo.com/q/hp?s=' + comAbbrs + '+Historical+Prices',function(res){
         var htmlArr = [];
         res.on('data' ,function(data){
@@ -40,8 +37,17 @@ function downloadCSV(comAbbrs){
         res.on('end', function(){
             var buf = Buffer.concat(htmlArr);
             var $=cheerio.load(iconv.decode(buf, 'gbk'));
-            var htmlContent = $(".yfncsumtab p a").attr("href");
-            console.log(htmlContent);
+            var htmlContent = $(".yfi_disclaimer").prev().find("a").attr("href");
+            http.get(htmlContent,function(res){
+                var dataArr = [];
+                res.on('data',function(data){
+                    dataArr.push(data);
+                });
+                res.on('end',function(){
+                    var buf = Buffer.concat(dataArr);
+                    fs.writeFileSync("D://" + comAbbrs + ".csv", buf);
+                });
+            });
         });
     });
 
