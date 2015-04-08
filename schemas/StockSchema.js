@@ -1,6 +1,3 @@
-/**
- * Created by King on 2015/3/29.
- */
 var mongoose = require('mongoose');
 
 var StockSchema = new mongoose.Schema({

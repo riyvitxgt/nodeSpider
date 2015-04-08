@@ -6,6 +6,9 @@ var fs = require('fs');
 var moment = require('moment');
 var schedule = require('node-schedule');
 var log4js = require('log4js');
+var StockSchema = require('./schemas/StockSchema.js');
+
+var CompanySchema = require('./schemas/CompanySchema.js');
 
 log4js.configure({
 	appenders:[
@@ -126,7 +129,6 @@ function insertIntoDB(data){
 			}
 		});
 	}
-	
 }
 
 /*
