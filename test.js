@@ -23,28 +23,25 @@ db.on('error',function(error){
 });
 
 //构造一个表
-var mongooseSchema = new mongoose.Schema({
-	stockName : {type:String},
-	open 	  : {type:Number},
-	close 	  : {type:Number},
-	nowPric   : {type:Number},
-	high	  : {type:Number},
-	low 	  : {type:Number},
-	buyPric   : {type:Number},
-	sellPric  : {type:Number},
-	dealCount : {type:Number},
-	dealPric  : {type:Number},
-	stockCode : {type:Number},
-	freshDate : {type:Date}
+var CompanySchema = require('./schemas/CompanySchema.js')
+var Company = db.model('companies',CompanySchema);
+
+Company.find(function(err,stocks){
+    if(err) console.error(err);
+   // console.log(stocks[1].get("code"));
+    for(var i = 0; i < stocks.length; i++){
+        //console.log(stocks[i].get("code"));
+        getStockMsg('sh' + stocks[i].get("code"));
+    }
 });
 
-var mongooseModel = db.model('stocks',mongooseSchema);
 
-function getStockMsg(code, callback){
-	console.log(code.toString());
+
+function getStockMsg(code){
+	//console.log(code.toString());
 	http.get("http://hq.sinajs.cn/list="+code.toString(),function(res){
 		res.on('data', function(data){
-			console.log(data.length);
+			//console.log(data.length);
 			if(data.length < 50){
 				console.log('数据返回错误');
 			}else{
@@ -68,6 +65,8 @@ function getStockMsg(code, callback){
 }
 
 function insertIntoDB(data){
+    var StockSchema = require('./schemas/StockSchema.js');
+    var Stock = db.model('stocks',StockSchema);
 	for(var i = 0; i < data.length; i++){
 		var msg = data[i].split(",");
 		var sql = '';
@@ -118,7 +117,7 @@ function insertIntoDB(data){
 			}
 		}
 		sql += ",stockCode:" + msg[33] + ", freshDate: "+ moment(msg[30]) + "}";
-		mongooseModel.create(eval("(" + sql + ")"), function(err){
+        Stock.create(eval("(" + sql + ")"), function(err){
 			if(err){
 				logger.error(err);
 				logger.error(sql);
@@ -130,7 +129,7 @@ function insertIntoDB(data){
 	
 }
 
-
+/*
 //从指定的excel文件中导出股票代码
 function getStockCode(filePath){
 	var exlBuf = fs.readFileSync(filePath);
@@ -167,3 +166,4 @@ schedule.scheduleJob(rule,function(){
 	getStockCode('D:/bb.xlsx');
 });
 
+*/

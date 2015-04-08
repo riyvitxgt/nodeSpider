@@ -82,10 +82,12 @@ function initComMsg(code){
 function readCode(filePath){
     var exlBuf = fs.readFileSync(filePath);
     ejsExcel.getExcelArrCb(exlBuf, function(exlJson){
-        for(var i = 0; i < exlJson[0].length; i++){
-            var stockNow = exlJson[0][i][2];
-            if(stockNow.indexOf(6) == 0 && stockNow.length == 6){
-               initComMsg(stockNow);
+        for(var j = 0; j < exlJson.length; j++){
+            for(var i = 0; i < exlJson[j].length; i++){
+                var stockNow = exlJson[j][i][2];
+                if(stockNow.indexOf(6) == 0 && stockNow.length == 6){
+                    initComMsg(stockNow);
+                }
             }
         }
         return;
